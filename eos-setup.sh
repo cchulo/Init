@@ -28,8 +28,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Print the value of the flag
-echo "nvidia: $nvidia"
+# nvidia drivers (if supported)
+if [[ "${nvidia}" = true ]]; then
+  print "attempting to install nVidia drivers"
+  if which nvidia-inst >/dev/null 2>&1; then
+    nvidia-inst --32 --conf
+  else
+    print "nvidia-inst not present, make sure you're on the latest EndeavourOS"
+  fi
+fi
 
 # games
 print "installing gaming libraries/apps"
@@ -78,11 +85,18 @@ sudo pacman -S --needed \
   podman \
   podman-docker
 
+# AUR package for nvidia (if supported) for GPU accelerated containers
+if [[ "${nvidia}" = true  ]]; then
+  yay nvidia-container-toolkit
+  sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+fi
+
 # X11 tools
 print "installing X11 addons"
 sudo pacman -S --needed \
   xorg-xhost
 
+# VM tools
 print "installing QEMU/KVM/VMM"
 sudo pacman -S --needed \
   qemu-desktop \
@@ -94,15 +108,15 @@ sudo pacman -S --needed \
   openbsd-netcat \
   dmidecode
 
-if [[ "${nvidia}" = true ]]; then
-  print "attempting to install nVidia drivers"
-  if which nvidia-inst >/dev/null 2>&1; then
-    nvidia-inst --32 --conf
-  else
-    print "nvidia-inst not present, make sure you're on the latest EndeavourOS"
-  fi
-fi
+# Shell
+print "installing ZSH"
+sudo pacman -S --needed \
+  zsh
 
+print "changing default terminal to zsh"
+chsh -s $(which zsh)
+
+# AUR packages
 print "WARNING: Installing AUR packages, will require user input!"
 yay \
   visual-studio-code-bin \
@@ -110,8 +124,3 @@ yay \
   prismlauncher-qt5-bin \
   emulationstation-de \
   protonup-qt-bin
-
-if [[ "${nvidia}" = true  ]]; then
-  yay nvidia-container-toolkit
-  sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
-fi
