@@ -242,16 +242,18 @@ sudo pacman -S --needed \
   xorg-xhost
 
 # VM tools
-print "installing QEMU/KVM/VMM"
-sudo pacman -S --needed \
-  qemu-desktop \
-  virt-manager \
-  virt-viewer \
-  dnsmasq \
-  vde2 \
-  bridge-utils \
-  openbsd-netcat \
-  dmidecode
+# print "installing QEMU/KVM/VMM"
+# sudo pacman -S --needed \
+#   qemu-desktop \
+#   virt-manager \
+#   virt-viewer \
+#   dnsmasq \
+#   vde2 \
+#   bridge-utils \
+#   openbsd-netcat \
+#   dmidecode
+
+print_warn "currently not installing QEMU/VMM, needs more scripting to reliably enable this feature"
 
 # Shell
 print "installing ZSH"
