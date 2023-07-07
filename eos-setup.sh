@@ -281,3 +281,7 @@ if [[ "${first_time_setup}" = true ]]; then
   snapper -c root create -d "*** Base System Configuration ***"
   snapper ls
 fi
+
+print "Setup complete!"
+press_to_continue "Rebooting the system"
+reboot
