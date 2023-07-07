@@ -201,9 +201,6 @@ sudo pacman -S --needed \
 
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
-
-  string_to_append=" quiet splash"
-  temp_file=$(mktemp)
   sudo sed -i '1{s/$/ quiet splash/}' /etc/kernel/cmdline
 
   sudo reinstall-kernels
