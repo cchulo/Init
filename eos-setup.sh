@@ -118,6 +118,8 @@ if [[ "${first_time_setup}" = true ]]; then
   sudo btrfs subvolume list /
   sudo mkdir /.snapshots
   sudo mount -a
+
+  print_info "verify that properly mounted onto /.snapshots"
   sudo lsblk
 
   print_info "get subvolume default for /"
