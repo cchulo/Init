@@ -32,7 +32,7 @@ function print_error() {
 }
 
 function press_to_continue() {
-  print_warn $1
+  print_warn $@
   echo "Press any key to continue..."
   read -n 1 -s
 }
@@ -202,11 +202,9 @@ sudo pacman -S --needed \
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
 
-  file="/etc/kernel/cmdline"
   string_to_append=" quiet splash"
   temp_file=$(mktemp)
-  sudo sed "1s/^/$string_to_append/" "$file" > "$temp_file"
-  sudo mv "$temp_file" "$file"
+  sudo sed -i '1{s/$/ quiet splash/}' /etc/kernel/cmdline
 
   sudo reinstall-kernels
 
