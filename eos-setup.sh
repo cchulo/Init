@@ -1,15 +1,45 @@
 #!/usr/bin/env bash
 
+set -e -o pipefail
+
+# Red color
+red="\e[31m"
+# Green color
+green="\e[32m"
+# Blue color
+blue="\e[34m"
+# Orange
+orange="\e[38;5;208m"
+# Reset color
+reset="\e[0m"
+
 function print() {
-    echo "================================"
-    echo "$1"
-    echo "================================"
+  echo -e "${green}================================${reset}"
+  echo -e "${green}$1${reset}"
+  echo -e "${green}================================${reset}"
 }
 
-#!/bin/bash
+function print_info() {
+  echo -e "${blue}$1${reset}"
+}
+
+function print_warn() {
+  echo -e "${orange}*** $1 ***${reset}"
+}
+
+function print_error() {
+  echo -e "${red}!!! $1 !!!${reset}"
+}
+
+# Check if the user is root
+if [ "$(id -u)" -eq 0 ]; then
+    print_error "Script cannot run as root or with sudo"
+    exit 1
+fi
 
 # Set the default value of the flag
 nvidia=false
+first_time_setup=false
 
 # Loop through the command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -21,6 +51,10 @@ while [[ $# -gt 0 ]]; do
             nvidia=true
             shift # past argument
             ;;
+        --first-time-setup)
+            first_time_setup=true
+            shift
+            ;;
         *)
             # Ignore other arguments
             shift # past argument
@@ -28,8 +62,77 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [[ "${first_time_setup}" = true ]]; then
+  print_warn "The script is running setting up EndeavourOS for the first time"
+else
+  print_warn "The script will be skipping first time setup for EndeavourOS"
+  print_warn "This will skip installing graphics drivers and other system configurations"
+  print_warn "like BTRFS snapshots"
+fi
+
+read -p "Do you want to continue? (y/n): " response
+
+if [[ "${response}" =~ ^[Yy]$ ]]; then
+    print_info "You chose to continue."
+elif [[ "${response}" =~ ^[Nn]$ ]]; then
+    print_info "You chose to cancel."
+    exit 0  # Exit the script with a status of 0 (success)
+else
+    print_error "Invalid response. Please enter 'y' for yes or 'n' for no."
+    exit 1  # Exit the script with a status of 1 (error)
+fi
+
+# Backup tools
+print "installing backup tools"
+sudo pacman -S --needed \
+  syncthing \
+  snapper \
+  snap-pac
+
+# Configuring snapper/snap-pac and DE services
+if [[ "${first_time_setup}" = true ]]; then
+  print "configuring snapper for BTRFS"
+
+  print_info "fixing /.snapshots directory"
+  sudo umount /.snapshots
+  sudo rm -r /.snapshots/
+  sudo snapper -c root create-config /
+  sudo btrfs subvolume list /
+  sudo btrfs subvolume delete /.snapshots
+  sudo btrfs subvolume list /
+  sudo mkdir /.snapshots
+  sudo mount -a
+  sudo lsblk
+
+  print_info "get subvolume default for /"
+  sudo btrfs subvolume get-default /
+  sudo btrfs subvolume list /
+
+  print_info "setting default subvolume default for /"
+  sudo btrfs subvolume set-default 256 /
+  sudo btrfs subvolume get-default /
+
+  sudo chown -R :wheel /.snapshots/
+
+  print_info "turning off CoW on /var/cache"
+  sudo chattr -R -f +C /var/cache
+
+  print_info "turning off CoW on /var/log"
+  sudo chattr -R -f +C /var/log
+
+  print_info "turning off CoW on /var/lib/libvirt/images"
+  sudo chattr -R -f +C /var/lib/libvirt/images
+
+  sudo lsattr -d /var/cache
+  sudo lsattr -d /var/log
+  sudo lsattr -d /var/lib/libvirt/images
+
+  print_info "*** enabling bluetooth ***"
+  sudo systemctl enable --now bluetooth
+fi
+
 # nvidia drivers (if supported)
-if [[ "${nvidia}" = true ]]; then
+if [[ "${nvidia}" = true ]] && [[ "${first_time_setup}" = true ]]; then
   print "attempting to install nVidia drivers"
   if which nvidia-inst >/dev/null 2>&1; then
     nvidia-inst --32 --conf
@@ -74,10 +177,9 @@ sudo pacman -S --needed \
   neovim \
   plymouth
 
-# Backup tools
-print "installing backup tools"
-sudo pacman -S --needed \
-  syncthing
+print "adding GTK2/3 symlinks so root can have same theme as the user"
+sudo ln -s $HOME/.gtkrc-2.0 /etc/gtk-2.0/gtkrc
+sudo ln -s $HOME/.config/gtk-3.0/settings.ini /etc/gtk-3.0/settings.ini
 
 # Containers
 print "installing containerization technologies"
@@ -87,7 +189,7 @@ sudo pacman -S --needed \
 
 # AUR package for nvidia (if supported) for GPU accelerated containers
 if [[ "${nvidia}" = true  ]]; then
-  yay nvidia-container-toolkit
+  yay --needed nvidia-container-toolkit
   sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
 fi
 
@@ -117,10 +219,20 @@ print "changing default terminal to zsh"
 chsh -s $(which zsh)
 
 # AUR packages
-print "WARNING: Installing AUR packages, will require user input!"
-yay \
+print_warn "WARNING: Installing AUR packages, will require user input!"
+yay --needed \
   visual-studio-code-bin \
   jetbrains-toolbox \
   prismlauncher-qt5-bin \
   emulationstation-de \
   protonup-qt-bin
+
+if [[ "${first_time_setup}" = true ]]; then
+  print "Taking a snapshot of the current system configuration"
+  snapper -c root create -d "*** Base System Configuration ***"
+  snapper ls
+fi
+
+print_info "be sure to make necessary edits to nvim /etc/snapper/configs/root then execute:"
+print_info "systemctl enable --now snapper-timeline.timer"
+print_info "systemctl enable --now snapper-cleanup.timer"
