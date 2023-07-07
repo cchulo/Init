@@ -49,25 +49,32 @@ while [[ $# -gt 0 ]]; do
         --nvidia)
             # Set the nvidia variable to true
             nvidia=true
-            shift # past argument
             ;;
         --first-time-setup)
             first_time_setup=true
-            shift
             ;;
         *)
-            # Ignore other arguments
-            shift # past argument
+            echo "Unknown argument: $key"
             ;;
     esac
+
+    shift # Move to the next argument
 done
 
 if [[ "${first_time_setup}" = true ]]; then
-  print_warn "The script is running setting up EndeavourOS for the first time"
+  print_info "The script is running setting up EndeavourOS for the first time"
 else
   print_warn "The script will be skipping first time setup for EndeavourOS"
   print_warn "This will skip installing graphics drivers and other system configurations"
   print_warn "like BTRFS snapshots"
+  print_warn "if this is a mistake pass in --first-time-setup to the script"
+fi
+
+if [[ "${nvidia}" = true ]]; then
+  print_info "The script will install nvidia drivers"
+else
+  print_warn "The script will not install nvidia drivers"
+  print_warn "if this is a mistake pass in --nvidia to the script"
 fi
 
 read -p "Do you want to continue? (y/n): " response
