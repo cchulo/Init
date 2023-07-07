@@ -134,6 +134,10 @@ if [[ "${first_time_setup}" = true ]]; then
   sudo lsattr -d /var/log
   sudo lsattr -d /var/lib/libvirt/images
 
+  print_warn "Review all the messages above to make sure everything executed correctly"
+  echo "Press any key to continue..."
+  read -n 1 -s
+
   print_info "*** enabling bluetooth ***"
   sudo systemctl enable --now bluetooth
 fi
