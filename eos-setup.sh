@@ -172,7 +172,6 @@ print "installing gaming libraries/apps"
 sudo pacman -S --needed \
   discord \
   steam \
-  spotify-launcher \
   wine \
   gamemode \
   lib32-gamemode \
@@ -267,14 +266,18 @@ sudo pacman -S --needed \
 print "changing default terminal to zsh"
 chsh -s $(which zsh)
 
+# Flatpaks
+sudo pacman -S flatpak
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub com.spotify.Client
+
 # AUR packages
 print_warn "WARNING: Installing AUR packages, will require user input!"
-yay --needed \
-  visual-studio-code-bin \
-  jetbrains-toolbox \
-  prismlauncher-qt5-bin \
-  emulationstation-de \
-  protonup-qt-bin
+yay --needed visual-studio-code-bin
+yay --needed jetbrains-toolbox
+yay --needed prismlauncher-qt5-bin
+yay --needed emulationstation-de
+yay --needed protonup-qt-bin
 
 if [[ "${first_time_setup}" = true ]]; then
   print "Taking a snapshot of the current system configuration"
