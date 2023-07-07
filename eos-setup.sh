@@ -95,12 +95,15 @@ else
     exit 1  # Exit the script with a status of 1 (error)
 fi
 
-# Backup tools
+######## Backup tools #############
 print "installing backup tools"
 sudo pacman -S --needed \
   syncthing \
   snapper \
   snap-pac
+
+
+####### BTRFS Setup ##############
 
 # Configuring snapper/snap-pac and DE services
 if [[ "${first_time_setup}" = true ]]; then
@@ -157,6 +160,7 @@ if [[ "${first_time_setup}" = true ]]; then
   sudo systemctl enable --now bluetooth
 fi
 
+########### nvidia drivers ###############
 # nvidia drivers (if supported)
 if [[ "${nvidia}" = true ]] && [[ "${first_time_setup}" = true ]]; then
   print "attempting to install nVidia drivers"
@@ -167,7 +171,7 @@ if [[ "${nvidia}" = true ]] && [[ "${first_time_setup}" = true ]]; then
   fi
 fi
 
-# games
+########### games ###############
 print "installing gaming libraries/apps"
 sudo pacman -S --needed \
   discord \
@@ -179,7 +183,7 @@ sudo pacman -S --needed \
   jdk-openjdk \
   jdk17-openjdk
 
-# emulation
+######### emulation ###############
 print "installing emulation libraries/apps"
 sudo pacman -S --needed \
   dolphin-emu \
@@ -191,7 +195,7 @@ sudo pacman -S --needed \
   libretro-mupen64plus-next \
   libretro-shaders-slang
 
-# GTK2/3 and other apps for DE
+########### GTK2/3 and other apps/libs for DE #############
 print "installing additional libraries/apps for enhanced DE experience"
 sudo pacman -S --needed \
   appmenu-gtk-module \
@@ -200,7 +204,10 @@ sudo pacman -S --needed \
   noto-fonts-emoji \
   tree \
   neovim \
-  plymouth
+  cracklib \
+  kwalletmanager \
+  gparted \
+  plymouth 
 
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
@@ -225,7 +232,7 @@ press_to_continue "if setting up symlinks did not work run these commands manual
 
 set -e -o pipefail
 
-# Containers
+############ Containers #############
 print "installing containerization technologies"
 sudo pacman -S --needed \
   podman \
@@ -237,12 +244,12 @@ if [[ "${nvidia}" = true  ]]; then
   sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
 fi
 
-# X11 tools
+########### X11 tools ###############
 print "installing X11 addons"
 sudo pacman -S --needed \
   xorg-xhost
 
-# VM tools
+########### VM tools ################
 print "installing QEMU/KVM/VMM"
 sudo pacman -S --needed \
   qemu-desktop \
@@ -258,7 +265,7 @@ sudo cp configs/libvirtd.conf /etc/libvirt/libvirtd.conf
 sudo usermod -a -G libvirt $(whoami)
 sudo systemctl enable --now libvirtd.service
 
-# Shell
+########## Shell ##################
 print "installing ZSH"
 sudo pacman -S --needed \
   zsh
@@ -266,12 +273,12 @@ sudo pacman -S --needed \
 print "changing default terminal to zsh"
 chsh -s $(which zsh)
 
-# Flatpaks
+########## Flatpaks ###############
 sudo pacman -S flatpak
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.spotify.Client
 
-# AUR packages
+######### AUR packages ############
 print_warn "WARNING: Installing AUR packages, will require user input!"
 yay --needed visual-studio-code-bin
 yay --needed jetbrains-toolbox
