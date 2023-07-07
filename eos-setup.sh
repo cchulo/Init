@@ -33,7 +33,7 @@ function print_error() {
 
 # Check if the user is root
 if [ "$(id -u)" -eq 0 ]; then
-    print_error "Script cannot run as root or with sudo"
+    print_error "Script cannot run as root or with sudo since it invokes yay"
     exit 1
 fi
 
@@ -176,6 +176,22 @@ sudo pacman -S --needed \
   tree \
   neovim \
   plymouth
+
+if [[ "${first_time_setup}" = true ]]; then
+  print_warn "adding plymouth kernel parameters quiet and splash"
+
+  file="/etc/kernel/cmdline"
+  string_to_append=" quiet splash"
+  temp_file=$(mktemp)
+  sudo sed "1s/^/$string_to_append/" "$file" > "$temp_file"
+  sudo mv "$temp_file" "$file"
+  sudo rm "$temp_file"
+
+  sudo reinstall-kernels
+
+else
+  print_info "add \" quiet splash \" to /etc/kernel/cmdline if its not already assigned"
+fi
 
 print "adding GTK2/3 symlinks so root can have same theme as the user"
 sudo ln -s $HOME/.gtkrc-2.0 /etc/gtk-2.0/gtkrc
