@@ -145,6 +145,10 @@ if [[ "${first_time_setup}" = true ]]; then
   sudo lsattr -d /var/log
   sudo lsattr -d /var/lib/libvirt/images
 
+  sudo cp configs/snapper-root /etc/snapper/configs/root
+  sudo systemctl enable --now snapper-timeline.timer
+  sudo systemctl enable --now snapper-cleanup.timer
+
   set -e -o pipefail
 
   press_to_continue "Review all the messages above to make sure everything executed correctly"
@@ -240,18 +244,20 @@ sudo pacman -S --needed \
   xorg-xhost
 
 # VM tools
-# print "installing QEMU/KVM/VMM"
-# sudo pacman -S --needed \
-#   qemu-desktop \
-#   virt-manager \
-#   virt-viewer \
-#   dnsmasq \
-#   vde2 \
-#   bridge-utils \
-#   openbsd-netcat \
-#   dmidecode
+print "installing QEMU/KVM/VMM"
+sudo pacman -S --needed \
+  qemu-desktop \
+  virt-manager \
+  virt-viewer \
+  dnsmasq \
+  vde2 \
+  bridge-utils \
+  openbsd-netcat \
+  dmidecode
 
-print_warn "currently not installing QEMU/VMM, needs more scripting to reliably enable this feature"
+sudo cp configs/libvirtd.conf /etc/libvirt/libvirtd.conf
+sudo usermod -a -G libvirt $(whoami)
+sudo systemctl enable --now libvirtd.service
 
 # Shell
 print "installing ZSH"
@@ -275,7 +281,3 @@ if [[ "${first_time_setup}" = true ]]; then
   snapper -c root create -d "*** Base System Configuration ***"
   snapper ls
 fi
-
-print_info "be sure to make necessary edits to nvim /etc/snapper/configs/root then execute:"
-print_info "systemctl enable --now snapper-timeline.timer"
-print_info "systemctl enable --now snapper-cleanup.timer"
