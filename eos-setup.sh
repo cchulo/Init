@@ -31,6 +31,12 @@ function print_error() {
   echo -e "${red}!!! $1 !!!${reset}"
 }
 
+function press_to_continue() {
+  print_warn $1
+  echo "Press any key to continue..."
+  read -n 1 -s
+}
+
 # Check if the user is root
 if [ "$(id -u)" -eq 0 ]; then
     print_error "Script cannot run as root or with sudo since it invokes yay"
@@ -139,9 +145,7 @@ if [[ "${first_time_setup}" = true ]]; then
 
   set -e -o pipefail
 
-  print_warn "Review all the messages above to make sure everything executed correctly"
-  echo "Press any key to continue..."
-  read -n 1 -s
+  press_to_continue "Review all the messages above to make sure everything executed correctly"
 
   print_info "*** enabling bluetooth ***"
   sudo systemctl enable --now bluetooth
@@ -201,7 +205,6 @@ if [[ "${first_time_setup}" = true ]]; then
   temp_file=$(mktemp)
   sudo sed "1s/^/$string_to_append/" "$file" > "$temp_file"
   sudo mv "$temp_file" "$file"
-  sudo rm "$temp_file"
 
   sudo reinstall-kernels
 
@@ -210,8 +213,16 @@ else
 fi
 
 print "adding GTK2/3 symlinks so root can have same theme as the user"
+
+set +e
+set +o pipefail
 sudo ln -s $HOME/.gtkrc-2.0 /etc/gtk-2.0/gtkrc
 sudo ln -s $HOME/.config/gtk-3.0/settings.ini /etc/gtk-3.0/settings.ini
+
+press_to_continue "if setting up symlinks did not work run these commands manually at some point: 
+\"sudo ln -s $HOME/.gtkrc-2.0 /etc/gtk-2.0/gtkrc\" and \"sudo ln -s $HOME/.config/gtk-3.0/settings.ini /etc/gtk-3.0/settings.ini\""
+
+set -e -o pipefail
 
 # Containers
 print "installing containerization technologies"
