@@ -98,6 +98,9 @@ sudo pacman -S --needed \
 
 # Configuring snapper/snap-pac and DE services
 if [[ "${first_time_setup}" = true ]]; then
+  set +e
+  set +o pipefail
+
   print "configuring snapper for BTRFS"
 
   print_info "fixing /.snapshots directory"
@@ -133,6 +136,8 @@ if [[ "${first_time_setup}" = true ]]; then
   sudo lsattr -d /var/cache
   sudo lsattr -d /var/log
   sudo lsattr -d /var/lib/libvirt/images
+
+  set -e -o pipefail
 
   print_warn "Review all the messages above to make sure everything executed correctly"
   echo "Press any key to continue..."
