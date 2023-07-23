@@ -135,19 +135,13 @@ if [[ "${first_time_setup}" = true ]]; then
 
   sudo chown -R :wheel /.snapshots/
 
-  print_info "turning off CoW on /var/cache"
-  sudo chattr -R -f +C /var/cache
-
-  print_info "turning off CoW on /var/log"
-  sudo chattr -R -f +C /var/log
-
   print_info "turning off CoW on /var/lib/libvirt/images"
   sudo chattr -R -f +C /var/lib/libvirt/images
 
-  sudo lsattr -d /var/cache
-  sudo lsattr -d /var/log
+  print_info "checking attributes on /var/lib/libvirt/images"
   sudo lsattr -d /var/lib/libvirt/images
 
+  print_info "enabling snapper clean up timers"
   sudo cp configs/snapper-root /etc/snapper/configs/root
   sudo systemctl enable --now snapper-timeline.timer
   sudo systemctl enable --now snapper-cleanup.timer
@@ -174,7 +168,6 @@ fi
 ########### games ###############
 print "installing gaming libraries/apps"
 sudo pacman -S --needed \
-  discord \
   steam \
   wine \
   gamemode \
@@ -184,16 +177,16 @@ sudo pacman -S --needed \
   jdk17-openjdk
 
 ######### emulation ###############
-print "installing emulation libraries/apps"
-sudo pacman -S --needed \
-  dolphin-emu \
-  retroarch \
-  retroarch-assets-xmb \
-  retroarch-assets-ozone \
-  libretro-snes9x \
-  libretro-mgba \
-  libretro-mupen64plus-next \
-  libretro-shaders-slang
+# print "installing emulation libraries/apps"
+# sudo pacman -S --needed \
+  # dolphin-emu \
+  # retroarch \
+  # retroarch-assets-xmb \
+  # retroarch-assets-ozone \
+  # libretro-snes9x \
+  # libretro-mgba \
+  # libretro-mupen64plus-next \
+  # libretro-shaders-slang
 
 ########### GTK2/3 and other apps/libs for DE #############
 print "installing additional libraries/apps for enhanced DE experience"
@@ -207,7 +200,8 @@ sudo pacman -S --needed \
   cracklib \
   kwalletmanager \
   gparted \
-  plymouth 
+  plymouth \
+  discover
 
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
@@ -277,14 +271,15 @@ chsh -s $(which zsh)
 sudo pacman -S flatpak
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.spotify.Client
+flatpak install flathub com.visualstudio.code
+flatpak install flathub org.prismlauncher.PrismLauncher
+flatpak install flathub net.davidotek.pupgui2
+flatpak install flathub com.discordapp.Discord
 
 ######### AUR packages ############
 print_warn "WARNING: Installing AUR packages, will require user input!"
-yay --needed visual-studio-code-bin
 yay --needed jetbrains-toolbox
-yay --needed prismlauncher-qt5-bin
 yay --needed emulationstation-de
-yay --needed protonup-qt-bin
 
 if [[ "${first_time_setup}" = true ]]; then
   print "Taking a snapshot of the current system configuration"
