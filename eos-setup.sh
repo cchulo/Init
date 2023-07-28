@@ -271,7 +271,6 @@ chsh -s $(which zsh)
 sudo pacman -S flatpak
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.spotify.Client
-flatpak install flathub com.visualstudio.code
 flatpak install flathub org.prismlauncher.PrismLauncher
 flatpak install flathub net.davidotek.pupgui2
 flatpak install flathub com.discordapp.Discord
