@@ -174,7 +174,9 @@ sudo pacman -S --needed \
   lib32-gamemode \
   gamescope \
   jdk-openjdk \
-  jdk17-openjdk
+  jdk17-openjdk \
+  joyutils \
+  mangohud
 
 ######### emulation ###############
 # print "installing emulation libraries/apps"
@@ -201,7 +203,9 @@ sudo pacman -S --needed \
   kwalletmanager \
   gparted \
   plymouth \
-  discover
+  discover \
+  plank \
+  ksshaskpass
 
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
@@ -267,6 +271,10 @@ sudo pacman -S --needed \
 print "changing default terminal to zsh"
 chsh -s $(which zsh)
 
+
+########## Dev Tools ###############
+sudo pacman -S --needed dotnet-sdk-6.0
+
 ########## Flatpaks ###############
 sudo pacman -S flatpak
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -274,11 +282,14 @@ flatpak install flathub com.spotify.Client
 flatpak install flathub org.prismlauncher.PrismLauncher
 flatpak install flathub net.davidotek.pupgui2
 flatpak install flathub com.discordapp.Discord
+flatpak install flathub com.github.tchx84.Flatseal
+flatpak install flathub org.zdoom.GZDoom
 
 ######### AUR packages ############
 print_warn "WARNING: Installing AUR packages, will require user input!"
 yay --needed jetbrains-toolbox
 yay --needed emulationstation-de
+yay --needed visual-studio-code-bin
 
 if [[ "${first_time_setup}" = true ]]; then
   print "Taking a snapshot of the current system configuration"
