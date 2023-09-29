@@ -178,18 +178,6 @@ sudo pacman -S --needed \
   joyutils \
   mangohud
 
-######### emulation ###############
-# print "installing emulation libraries/apps"
-# sudo pacman -S --needed \
-  # dolphin-emu \
-  # retroarch \
-  # retroarch-assets-xmb \
-  # retroarch-assets-ozone \
-  # libretro-snes9x \
-  # libretro-mgba \
-  # libretro-mupen64plus-next \
-  # libretro-shaders-slang
-
 ########### GTK2/3 and other apps/libs for DE #############
 print "installing additional libraries/apps for enhanced DE experience"
 sudo pacman -S --needed \
@@ -204,8 +192,9 @@ sudo pacman -S --needed \
   gparted \
   plymouth \
   discover \
-  plank \
-  ksshaskpass
+  ksshaskpass \
+  htop \
+  p7zip
 
 if [[ "${first_time_setup}" = true ]]; then
   print_warn "adding plymouth kernel parameters quiet and splash"
@@ -273,7 +262,12 @@ chsh -s $(which zsh)
 
 
 ########## Dev Tools ###############
-sudo pacman -S --needed dotnet-sdk-6.0
+sudo pacman -S --needed \
+  blender \
+  dotnet-sdk-6.0 \
+  vulkan-devel \
+  ninja \
+  clang
 
 ########## Flatpaks ###############
 sudo pacman -S flatpak
@@ -284,6 +278,11 @@ flatpak install flathub net.davidotek.pupgui2
 flatpak install flathub com.discordapp.Discord
 flatpak install flathub com.github.tchx84.Flatseal
 flatpak install flathub org.zdoom.GZDoom
+flatpak install flathub com.usebottles.bottles
+flatpak install flathub com.valvesoftware.SteamLink
+flatpak install flathub io.podman_desktop.PodmanDesktop
+flatpak install flathub org.DolphinEmu.dolphin-emu
+flatpak install flathub org.libretro.RetroArch
 
 ######### AUR packages ############
 print_warn "WARNING: Installing AUR packages, will require user input!"
