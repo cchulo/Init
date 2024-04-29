@@ -5,14 +5,31 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+partition="$1"
+tang_server="$2"
+port="${3:-7500}"
+
 # Check if there's a partition parameter
-if [ -z "$1" ]; then
+if [ -z "${partition}" ]; then
     echo "Error: No partition specified."
     exit 1
 fi
 
+if [ -z "${tang_server}" ]; then
+    echo "Error: No tang server specified."
+    exit 1
+fi
+
+# Ping the IP address
+if ping -c 1 -W 3 "${tang_server}" &> /dev/null; then
+    echo "${tang_server} is reachable."
+else
+    echo "${tang_server} is not reachable."
+    exit 1
+fi
+
 # Check if the partition exists
-if [ ! -b "$1" ]; then
+if [ ! -b "${partition}" ]; then
     echo "Error: The specified partition does not exist."
     exit 1
 fi
@@ -27,17 +44,18 @@ if ! rpm -q clevis-dracut &>/dev/null; then
 fi
 
 # Ensure the partition is a LUKS partition
-if ! blkid "$1" | grep -q "TYPE=\"crypto_LUKS\""; then
+if ! blkid "${partition}" | grep -q "TYPE=\"crypto_LUKS\""; then
     echo "Error: The specified partition is not a LUKS partition."
     exit 1
 fi
 
 # Check if the LUKS partition is already bound to a Tang server
-if clevis luks list -d "$1" | grep -q "tang"; then
+if clevis luks list -d "${partition}" | grep -q "tang"; then
     echo "The LUKS partition is already bound to a Tang server."
 else
     # Bind the LUKS partition to the Tang server
-    if clevis luks bind -d "$1" tang '{"url":"http://10.0.0.1:7500"}'; then
+    echo "attempting to bind ${partition} to the tang server ${tang_server}:${port}"
+    if clevis luks bind -d "${partition}" tang "{\"url\":\"http://${tang_server}:${port}\"}"; then
         echo "Successfully bound the LUKS partition to the Tang server."
     else
         echo "Failed to bind the LUKS partition to the Tang server."
